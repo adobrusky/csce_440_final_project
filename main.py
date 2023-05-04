@@ -6,7 +6,21 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
-def predict_future_price(X_train, y_train, X_test):
+
+def predict_future_price(past_prices, future_time_steps):
+    # Convert the past prices to a 2D array
+    past_prices = np.array(past_prices).reshape(-1, 1)
+
+    # Create a linear regression model and fit it to the past prices
+    model = LinearRegression()
+    model.fit(np.arange(len(past_prices)).reshape(-1, 1), past_prices)
+
+    # Use the model to predict future prices
+    future_prices = model.predict(np.arange(len(past_prices), len(past_prices) + future_time_steps).reshape(-1, 1))
+
+    return future_prices.flatten()
+
+def predict_future_price_test(X_train, y_train, X_test):
     model = LinearRegression()
     model.fit(X_train, y_train)
 
@@ -30,7 +44,8 @@ def main():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    future_prices = predict_future_price(X_train, y_train, X_test)
+    # future price calculations using split data
+    future_prices = predict_future_price_test(X_train, y_train, X_test)
 
     mse = mean_squared_error(y_test, future_prices)
     r2 = r2_score(y_test, future_prices)
@@ -38,11 +53,10 @@ def main():
     print(f"Mean Squared Error: {mse:.2f}")
     print(f"R-squared: {r2:.2f}")
 
-    future_X = np.arange(len(monthly_close_prices), len(monthly_close_prices) + int(years) * 12).reshape(-1, 1)
-    future_price = predict_future_price(X_train, y_train, future_X)[-1]
+    # future price calculation using all data
+    future_price = predict_future_price(monthly_close_prices, int(years) * 12)[-1]
 
-    future_price_scalar = future_price[-1]
-    print(f"Extrapolation via Linear Regression predicts that {ticker} will be worth ${future_price_scalar:.2f} in {years} years based on {data_range} years of historical data.")
+    print(f"Extrapolation via Linear Regression predicts that {ticker} will be worth ${future_price:.2f} in {years} years based on {data_range} years of historical data.")
 
 if __name__ == '__main__':
     main()
