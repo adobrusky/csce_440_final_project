@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
 
 def predict_future_price(past_prices, future_time_steps):
@@ -57,6 +58,15 @@ def main():
     future_price = predict_future_price(monthly_close_prices, int(years) * 12)[-1]
 
     print(f"Extrapolation via Linear Regression predicts that {ticker} will be worth ${future_price:.2f} in {years} years based on {data_range} years of historical data.")
+
+     # plot actual data vs predicted data
+    plt.scatter(X_test, y_test, color='black', label='Actual Data')
+    plt.plot(X_test, future_prices, color='blue', linewidth=3, label='Predicted Data')
+    plt.title(f"{ticker} Stock Price Prediction")
+    plt.xlabel('Months')
+    plt.ylabel('Price')
+    plt.legend()
+    plt.show()
 
 if __name__ == '__main__':
     main()
