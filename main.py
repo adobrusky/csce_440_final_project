@@ -49,14 +49,12 @@ def main():
         y = np.array(monthly_close_prices).reshape(-1, 1)
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
+        future_prices = []
         if choice == "1":
-            prediction_method = predict_future_price_linear
+            future_prices = predict_future_price_linear(X_train, y_train, X_test)
         elif choice == "2":
             degree = int(input("Enter the degree of the polynomial (e.g., 2 for quadratic, 3 for cubic): "))
-            prediction_method = lambda X_train, y_train, X_test: predict_future_price_poly(X_train, y_train, X_test, degree)
-
-        future_prices = prediction_method(X_train, y_train, X_test)
+            future_prices = predict_future_price_poly(X_train, y_train, X_test, degree)
 
         mse = mean_squared_error(y_test, future_prices)
         r2 = r2_score(y_test, future_prices)
