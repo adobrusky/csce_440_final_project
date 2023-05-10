@@ -10,19 +10,31 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 
-def predict_future_price_linear(X_train, y_train, X_test):
+def predict_future_price_linear_test(X_train, y_train, X_test):
     model = LinearRegression()
     model.fit(X_train, y_train)
     future_prices = model.predict(X_test)
     return future_prices
 
+def predict_future_price_linear(past_prices, future_time_steps):
+    past_prices = np.array(past_prices).reshape(-1, 1)
+    model = LinearRegression()
+    model.fit(np.arange(len(past_prices)).reshape(-1, 1), past_prices)
+    future_prices = model.predict(np.arange(len(past_prices), len(past_prices) + future_time_steps).reshape(-1, 1))
+    return future_prices.flatten()
 
-def predict_future_price_poly(X_train, y_train, X_test, degree=2):
+def predict_future_price_poly_test(X_train, y_train, X_test, degree=2):
     model = make_pipeline(PolynomialFeatures(degree), LinearRegression())
     model.fit(X_train, y_train)
     future_prices = model.predict(X_test)
     return future_prices
 
+def predict_future_price_poly(past_prices, future_time_steps, degree=2):
+    past_prices = np.array(past_prices).reshape(-1, 1)
+    model = make_pipeline(PolynomialFeatures(degree), LinearRegression())
+    model.fit(np.arange(len(past_prices)).reshape(-1, 1), past_prices)
+    future_prices = model.predict(np.arange(len(past_prices), len(past_prices) + future_time_steps).reshape(-1, 1))
+    return future_prices.flatten()
 
 def main():
     while True:
@@ -49,22 +61,22 @@ def main():
         y = np.array(monthly_close_prices).reshape(-1, 1)
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        future_prices = []
+        future_prices_test = []
+        future_price = 0
         if choice == "1":
-            future_prices = predict_future_price_linear(X_train, y_train, X_test)
+            future_prices_test = predict_future_price_linear_test(X_train, y_train, X_test)
+            future_price = predict_future_price_linear(monthly_close_prices, int(years) * 12)[-1]
         elif choice == "2":
             degree = int(input("Enter the degree of the polynomial (e.g., 2 for quadratic, 3 for cubic): "))
-            future_prices = predict_future_price_poly(X_train, y_train, X_test, degree)
+            future_prices_test = predict_future_price_poly_test(X_train, y_train, X_test, degree)
+            future_price = predict_future_price_poly(monthly_close_prices, int(years) * 12, degree)[-1]
 
-        mse = mean_squared_error(y_test, future_prices)
-        r2 = r2_score(y_test, future_prices)
+        mse = mean_squared_error(y_test, future_prices_test)
+        r2 = r2_score(y_test, future_prices_test)
 
         print(f"Mean Squared Error: {mse:.2f}")
         print(f"R-squared: {r2:.2f}")
-
-        future_price = future_prices[-1]
-
-        print(f"Extrapolation via {'Linear' if choice == '1' else 'Poly'} Regression predicts that {ticker} will be worth ${future_price.tolist()[0]:.2f}")
+        print(f"Extrapolation via {'Linear' if choice == '1' else 'Poly'} Regression predicts that {ticker} will be worth ${future_price:.2f}")
 
 
 if __name__ == '__main__':
